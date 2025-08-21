@@ -452,41 +452,35 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       }
 
       const data = await response.json();
-      console.log('N8N Response:', data); // Debug log
-      
-      let assistantContent = 'I apologize, but I received an unexpected response format.';
-      let messageType: 'text' | 'data' | 'error' | 'success' = 'text';
+let assistantContent = 'I apologize, but I received an unexpected response format.';
+let messageType: 'text' | 'data' | 'error' | 'success' = 'text';
 
-      // Handle the expected response format from n8n
-      if (data.success && data.data?.message) {
-        assistantContent = data.data.message;
-        
-        // Determine message type based on content
-        if (assistantContent.toLowerCase().includes('error') || assistantContent.toLowerCase().includes('failed')) {
-          messageType = 'error';
-        } else if (assistantContent.toLowerCase().includes('updated') || assistantContent.toLowerCase().includes('sent') || assistantContent.toLowerCase().includes('created')) {
-          messageType = 'success';
-        } else if (assistantContent.includes('{') && assistantContent.includes('}')) {
-          // Looks like JSON data
-          messageType = 'data';
-          try {
-            const parsed = JSON.parse(assistantContent);
-            assistantContent = JSON.stringify(parsed, null, 2);
-          } catch {
-            // If JSON parsing fails, treat as regular text
-            messageType = 'text';
-          }
-        } else {
-          messageType = 'text';
-        }
-        
-        setIsConnected(true);
-      } else if (data.message) {
-        // Fallback to direct message property
-        assistantContent = data.message;
-        messageType = 'text';
-        setIsConnected(true);
-      } else {
+if (data.message) {
+  assistantContent = data.message;
+
+  if (assistantContent.toLowerCase().includes('error') || assistantContent.toLowerCase().includes('failed')) {
+    messageType = 'error';
+  } else if (assistantContent.toLowerCase().includes('updated') || assistantContent.toLowerCase().includes('sent') || assistantContent.toLowerCase().includes('created')) {
+    messageType = 'success';
+  } else if (assistantContent.includes('{') && assistantContent.includes('}')) {
+    messageType = 'data';
+    try {
+      const parsed = JSON.parse(assistantContent);
+      assistantContent = JSON.stringify(parsed, null, 2);
+    } catch {
+      messageType = 'text';
+    }
+  } else {
+    messageType = 'text';
+  }
+
+  setIsConnected(true);
+} else {
+  assistantContent = `Received unexpected response format. Raw response: ${JSON.stringify(data, null, 2)}`;
+  messageType = 'error';
+  setIsConnected(false);
+}
+ else {
         // Unexpected format
         assistantContent = `Received unexpected response format. Raw response: ${JSON.stringify(data, null, 2)}`;
         messageType = 'error';
