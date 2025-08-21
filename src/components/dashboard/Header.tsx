@@ -51,7 +51,7 @@ export const Header = ({ data, lastUpdated }: HeaderProps) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground">HVAC Unit Dashboard</h1>
-          <p className="text-muted-foreground">PLC: S7-1200 | CHILLER 157E</p>
+          <p className="text-muted-foreground">PLC: S7-1200 | CHILLER 157P</p>
         </div>
         <div className="flex items-center gap-4">
           <Badge 
