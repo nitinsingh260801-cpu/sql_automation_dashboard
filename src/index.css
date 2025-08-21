@@ -1,0 +1,156 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Industrial IoT Dark Theme Design System */
+
+@layer base {
+  :root {
+    /* Dark Industrial Base Colors */
+    --background: 220 15% 8%;
+    --foreground: 210 15% 92%;
+
+    --card: 220 15% 10%;
+    --card-foreground: 210 15% 90%;
+
+    --popover: 220 15% 12%;
+    --popover-foreground: 210 15% 90%;
+
+    /* Industrial Primary - Electric Blue */
+    --primary: 200 100% 60%;
+    --primary-foreground: 220 15% 8%;
+    --primary-glow: 200 100% 70%;
+    --primary-dim: 200 80% 45%;
+
+    /* Industrial Secondary - Steel Gray */
+    --secondary: 220 15% 20%;
+    --secondary-foreground: 210 15% 85%;
+
+    --muted: 220 15% 15%;
+    --muted-foreground: 210 10% 60%;
+
+    /* Industrial Accent - Amber */
+    --accent: 45 100% 55%;
+    --accent-foreground: 220 15% 8%;
+
+    /* Status Colors */
+    --success: 142 70% 50%;
+    --success-foreground: 220 15% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 220 15% 8%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 15% 92%;
+
+    /* Industrial UI Elements */
+    --border: 220 15% 25%;
+    --input: 220 15% 15%;
+    --ring: 200 100% 60%;
+
+    --radius: 0.5rem;
+
+    /* Industrial Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(220 15% 12%));
+    --gradient-glass: linear-gradient(135deg, hsla(220, 15%, 15%, 0.8), hsla(220, 15%, 10%, 0.9));
+    
+    /* Industrial Shadows & Effects */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
+    --shadow-card: 0 8px 32px hsl(220 15% 5% / 0.8);
+    --shadow-inner: inset 0 1px 2px hsl(220 15% 5% / 0.5);
+    
+    /* Gauge Colors */
+    --gauge-normal: 142 70% 50%;
+    --gauge-warning: 38 92% 55%;
+    --gauge-critical: 0 84% 60%;
+    --gauge-background: 220 15% 20%;
+    
+    /* Chart Colors */
+    --chart-temp-ambient: 200 100% 60%;
+    --chart-temp-return: 142 70% 50%;
+    --chart-temp-supply: 38 92% 55%;
+    --chart-temp-heater: 0 84% 60%;
+    --chart-pressure-lp: 270 100% 65%;
+    --chart-pressure-hp: 45 100% 55%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+}
+
+@layer components {
+  /* Industrial Glassmorphism Cards */
+  .glass-card {
+    @apply bg-gradient-to-br from-card/80 to-card/60 border border-border/50 backdrop-blur-xl;
+    box-shadow: var(--shadow-card);
+  }
+  
+  .glass-panel {
+    @apply bg-gradient-to-br backdrop-blur-lg border border-border/30;
+    background: var(--gradient-glass);
+  }
+
+  /* Status Indicators */
+  .status-on {
+    @apply bg-success text-success-foreground;
+    box-shadow: 0 0 12px hsl(var(--success) / 0.4);
+  }
+  
+  .status-off {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  
+  .status-fault {
+    @apply bg-destructive text-destructive-foreground animate-pulse;
+    box-shadow: 0 0 12px hsl(var(--destructive) / 0.4);
+  }
+
+  /* Gauges */
+  .gauge-normal { fill: hsl(var(--gauge-normal)); }
+  .gauge-warning { fill: hsl(var(--gauge-warning)); }
+  .gauge-critical { fill: hsl(var(--gauge-critical)); }
+  
+  /* Data Grid */
+  .data-grid {
+    @apply grid gap-4;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  /* Glow Effects */
+  .glow-primary {
+    box-shadow: var(--shadow-glow);
+  }
+  
+  .glow-success {
+    box-shadow: 0 0 20px hsl(var(--success) / 0.3);
+  }
+  
+  .glow-warning {
+    box-shadow: 0 0 20px hsl(var(--warning) / 0.3);
+  }
+  
+  .glow-destructive {
+    box-shadow: 0 0 20px hsl(var(--destructive) / 0.3);
+  }
+
+  /* Animations */
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite alternate;
+  }
+
+  @keyframes pulse-glow {
+    from {
+      box-shadow: 0 0 5px hsl(var(--primary) / 0.3);
+    }
+    to {
+      box-shadow: 0 0 20px hsl(var(--primary) / 0.6);
+    }
+  }
+}
