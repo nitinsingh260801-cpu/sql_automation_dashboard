@@ -6,6 +6,73 @@
 
 @layer base {
   :root {
+    --background: 0 0% 98%;
+    --foreground: 220 15% 8%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 15% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 10%;
+
+    /* Industrial Primary - Electric Blue */
+    --primary: 200 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 200 100% 60%;
+    --primary-dim: 200 80% 35%;
+
+    /* Industrial Secondary - Light Gray */
+    --secondary: 220 15% 95%;
+    --secondary-foreground: 220 15% 15%;
+
+    --muted: 220 15% 96%;
+    --muted-foreground: 220 10% 40%;
+
+    /* Industrial Accent - Amber */
+    --accent: 45 100% 45%;
+    --accent-foreground: 0 0% 98%;
+
+    /* Status Colors */
+    --success: 142 70% 40%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 45%;
+    --warning-foreground: 0 0% 98%;
+    --destructive: 0 84% 50%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Industrial UI Elements */
+    --border: 220 15% 85%;
+    --input: 220 15% 96%;
+    --ring: 200 100% 50%;
+
+    --radius: 0.5rem;
+
+    /* Light Industrial Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(220 15% 98%));
+    --gradient-glass: linear-gradient(135deg, hsla(0, 0%, 100%, 0.8), hsla(220, 15%, 98%, 0.9));
+    
+    /* Light Industrial Shadows & Effects */
+    --shadow-glow: 0 0 20px hsl(var(--primary) / 0.2);
+    --shadow-card: 0 8px 32px hsl(220 15% 80% / 0.4);
+    --shadow-inner: inset 0 1px 2px hsl(220 15% 90% / 0.5);
+    
+    /* Gauge Colors */
+    --gauge-normal: 142 70% 40%;
+    --gauge-warning: 38 92% 45%;
+    --gauge-critical: 0 84% 50%;
+    --gauge-background: 220 15% 90%;
+    
+    /* Chart Colors */
+    --chart-temp-ambient: 200 100% 50%;
+    --chart-temp-return: 142 70% 40%;
+    --chart-temp-supply: 38 92% 45%;
+    --chart-temp-heater: 0 84% 50%;
+    --chart-pressure-lp: 270 100% 55%;
+    --chart-pressure-hp: 45 100% 45%;
+  }
+
+  .dark {
     /* Dark Industrial Base Colors */
     --background: 220 15% 8%;
     --foreground: 210 15% 92%;
@@ -46,14 +113,12 @@
     --input: 220 15% 15%;
     --ring: 200 100% 60%;
 
-    --radius: 0.5rem;
-
-    /* Industrial Gradients */
+    /* Dark Industrial Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
     --gradient-card: linear-gradient(135deg, hsl(var(--card)), hsl(220 15% 12%));
     --gradient-glass: linear-gradient(135deg, hsla(220, 15%, 15%, 0.8), hsla(220, 15%, 10%, 0.9));
     
-    /* Industrial Shadows & Effects */
+    /* Dark Industrial Shadows & Effects */
     --shadow-glow: 0 0 20px hsl(var(--primary) / 0.3);
     --shadow-card: 0 8px 32px hsl(220 15% 5% / 0.8);
     --shadow-inner: inset 0 1px 2px hsl(220 15% 5% / 0.5);
