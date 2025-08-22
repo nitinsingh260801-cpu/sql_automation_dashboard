@@ -531,8 +531,8 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       <div key={message.id} className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
         {!isUser && (
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <Bot className="w-4 h-4 text-primary-foreground" />
+            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+              <Bot className="w-4 h-4 text-white" />
             </div>
           </div>
         )}
@@ -540,12 +540,12 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         <div className={`max-w-[80%] ${isUser ? 'order-first' : ''}`}>
           <div className={`p-3 rounded-lg ${
             isUser 
-              ? 'bg-primary text-primary-foreground ml-auto' 
+              ? 'bg-blue-600 text-white ml-auto' 
               : message.type === 'error'
-                ? 'bg-destructive/10 border border-destructive/20'
+                ? 'bg-red-50 border border-red-200 text-red-800'
                 : message.type === 'data'
-                  ? 'bg-muted border border-border'
-                  : 'glass-panel'
+                  ? 'bg-gray-50 border border-gray-200 text-gray-900'
+                  : 'bg-gray-50 border border-gray-200 text-gray-900'
           }`}>
             {message.type === 'data' ? (
               <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
@@ -555,15 +555,15 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               <p className="text-sm">{message.content}</p>
             )}
           </div>
-          <div className="text-xs text-muted-foreground mt-1 px-2">
+                    <div className="text-xs text-gray-500 mt-1 px-2">
             {formatTime(message.timestamp)}
           </div>
         </div>
         
         {isUser && (
           <div className="flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
-              <User className="w-4 h-4 text-secondary-foreground" />
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center">
+              <User className="w-4 h-4 text-gray-600" />
             </div>
           </div>
         )}
@@ -586,12 +586,12 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
 
       {/* Chat Panel */}
       {isOpen && (
-        <div className="fixed right-4 bottom-20 w-96 h-[600px] z-40 glass-card border border-border/50 rounded-lg overflow-hidden">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center">
-              <Bot className="w-5 h-5 mr-2 text-primary" />
+        <div className="fixed right-4 bottom-20 w-96 h-[600px] z-40 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xl">
+          <CardHeader className="pb-3 border-b border-gray-200">
+            <CardTitle className="flex items-center text-gray-900">
+              <Bot className="w-5 h-5 mr-2 text-blue-600" />
               HVAC Assistant
-              <Badge variant="secondary" className="ml-auto">
+               <Badge className="ml-auto bg-green-100 text-green-800 hover:bg-green-100">
                 Online
               </Badge>
             </CardTitle>
@@ -605,7 +605,7 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               {/* Suggested Queries */}
               {messages.length === 1 && (
                 <div className="mt-6">
-                  <p className="text-sm text-muted-foreground mb-3">Try asking:</p>
+                  <p className="text-sm text-gray-500 mb-3">Try asking:</p>
                   <div className="space-y-2">
                     {suggestedQueries.map((query, index) => {
                       const IconComponent = query.icon;
@@ -613,13 +613,13 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
                         <button
                           key={index}
                           onClick={() => handleSuggestedQuery(query.text)}
-                          className="w-full text-left p-2 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border/30"
+                          className="w-full text-left p-2 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200"
                         >
                           <div className="flex items-center gap-2">
-                            <IconComponent className="w-4 h-4 text-primary" />
-                            <span className="text-sm">{query.text}</span>
+                            <IconComponent className="w-4 h-4 text-blue-600" />
+                            <span className="text-sm text-gray-900">{query.text}</span>
                           </div>
-                          <Badge variant="outline" className="text-xs mt-1">
+                          <Badge variant="outline" className="text-xs mt-1 border-gray-300 text-gray-600">
                             {query.category}
                           </Badge>
                         </button>
@@ -631,13 +631,13 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               
               {isLoading && (
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-primary-foreground" />
+                   <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white" />
                   </div>
-                  <div className="glass-panel p-3 rounded-lg">
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-lg">
                     <div className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span className="text-sm">Analyzing...</span>
+                      <Loader2 className="w-4 h-4 animate-spin text-blue-600" />
+                      <span className="text-sm text-gray-900">Analyzing...</span>
                     </div>
                   </div>
                 </div>
@@ -647,24 +647,25 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
             </ScrollArea>
             
             {/* Input Area */}
-            <div className="p-4 border-t border-border/50">
+             <div className="p-4 border-t border-gray-200 bg-white">
               <form onSubmit={handleSubmit} className="flex gap-2">
                 <Input
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   placeholder="Ask about system performance..."
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 border-gray-300 bg-white text-gray-900 placeholder:text-gray-500"
                 />
                 <Button 
                   type="submit" 
                   size="icon"
                   disabled={isLoading || !input.trim()}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Send className="w-4 h-4" />
                 </Button>
               </form>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-xs text-gray-500 mt-2">
                 Connected to n8n AI agent for real-time analysis
               </p>
             </div>
