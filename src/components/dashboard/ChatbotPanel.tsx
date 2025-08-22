@@ -538,7 +538,7 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         )}
         
         <div className={`max-w-[80%] ${isUser ? 'order-first' : ''}`}>
-          <div className={`p-3 rounded-lg ${
+            <div className={`p-3 rounded-lg ${
             isUser 
               ? 'bg-blue-600 text-white ml-auto' 
               : message.type === 'error'
@@ -584,7 +584,7 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         </Button>
       </div>
 
-      {/* Chat Panel */}
+      {/* Chat Panel - Always Light Mode */}
       {isOpen && (
         <div className="fixed right-4 bottom-20 w-96 h-[600px] z-40 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xl">
           <CardHeader className="pb-3 border-b border-gray-200">
