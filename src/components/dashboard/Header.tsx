@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Clock, Thermometer, Gauge, Activity } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { DashboardData } from '../Dashboard';
 
 interface HeaderProps {
@@ -54,6 +55,7 @@ export const Header = ({ data, lastUpdated }: HeaderProps) => {
           <p className="text-muted-foreground">PLC: S7-1200 | CHILLER 157P</p>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <Badge 
             variant={isHealthy ? "default" : "destructive"}
             className={isHealthy ? "glow-success" : "glow-destructive"}
