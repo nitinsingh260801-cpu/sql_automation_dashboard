@@ -434,7 +434,7 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
 
     try {
       // Update: Pass x-session-id in headers for n8n to use
-      const response = await fetch('https://pretty-definitely-gazelle.ngrok-free.app/webhook/lovable-webhook', {
+      const response = await fetch('https://4fae5e07d84a.ngrok-free.app/webhook/lovable-webhook', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
