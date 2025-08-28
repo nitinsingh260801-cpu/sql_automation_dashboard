@@ -353,7 +353,12 @@ import { 
   Database,
   TrendingUp,
   AlertTriangle,
-  Thermometer
+  Thermometer,
+  Maximize2,
+  Minimize2,
+  History,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -365,6 +370,13 @@ interface Message {
   type?: 'text' | 'data' | 'error';
 }
 
+interface ChatHistory {
+  id: string;
+  title: string;
+  messages: Message[];
+  createdAt: Date;
+  lastUpdated: Date;
+}
 interface ChatbotPanelProps {
   isOpen: boolean;
   onToggle: () => void;
@@ -380,11 +392,140 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       type: 'text'
     }
   ]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [currentChatId, setCurrentChatId] = useState<string>('');
+  const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [sessionId] = useState(() => `session_${Date.now()}`);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+
+  // Initialize default welcome message
+  const getWelcomeMessage = (): Message => ({
+    id: '1',
+    role: 'assistant',
+    content: 'Hello! I\'m your HVAC system assistant. I can help you analyze data, explain system behavior, and provide insights about your chiller unit. What would you like to know?',
+    timestamp: new Date(),
+    type: 'text'
+  });
+
+  // Load chat histories from localStorage on mount
+  useEffect(() => {
+    const savedHistories = localStorage.getItem('chatbot-histories');
+    if (savedHistories) {
+      try {
+        const parsed = JSON.parse(savedHistories).map((h: any) => ({
+          ...h,
+          createdAt: new Date(h.createdAt),
+          lastUpdated: new Date(h.lastUpdated),
+          messages: h.messages.map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp)
+          }))
+        }));
+        setChatHistories(parsed);
+        
+        // Load the most recent chat or create new one
+        if (parsed.length > 0) {
+          const mostRecent = parsed[0];
+          setCurrentChatId(mostRecent.id);
+          setMessages(mostRecent.messages);
+        } else {
+          createNewChat();
+        }
+      } catch (error) {
+        console.error('Error loading chat histories:', error);
+        createNewChat();
+      }
+    } else {
+      createNewChat();
+    }
+  }, []);
+
+  // Save chat histories to localStorage
+  useEffect(() => {
+    if (chatHistories.length > 0) {
+      localStorage.setItem('chatbot-histories', JSON.stringify(chatHistories));
+    }
+  }, [chatHistories]);
+
+  // Update current chat when messages change
+  useEffect(() => {
+    if (currentChatId && messages.length > 0) {
+      setChatHistories(prev => prev.map(chat => 
+        chat.id === currentChatId 
+          ? {
+              ...chat,
+              messages,
+              lastUpdated: new Date(),
+              title: generateChatTitle(messages)
+            }
+          : chat
+      ));
+    }
+  }, [messages, currentChatId]);
+
+  const generateChatTitle = (msgs: Message[]): string => {
+    const firstUserMessage = msgs.find(m => m.role === 'user');
+    if (firstUserMessage) {
+      return firstUserMessage.content.length > 30 
+        ? firstUserMessage.content.substring(0, 30) + '...'
+        : firstUserMessage.content;
+    }
+    return `Chat ${new Date().toLocaleDateString()}`;
+  };
+
+  const createNewChat = () => {
+    const newChatId = `chat_${Date.now()}`;
+    const welcomeMessage = getWelcomeMessage();
+    
+    const newChat: ChatHistory = {
+      id: newChatId,
+      title: `New Chat`,
+      messages: [welcomeMessage],
+      createdAt: new Date(),
+      lastUpdated: new Date()
+    };
+
+    setChatHistories(prev => {
+      const updated = [newChat, ...prev];
+      // Keep only the 5 most recent chats
+      return updated.slice(0, 5);
+    });
+    
+    setCurrentChatId(newChatId);
+    setMessages([welcomeMessage]);
+  };
+
+  const switchToChat = (chatId: string) => {
+    const chat = chatHistories.find(c => c.id === chatId);
+    if (chat) {
+      setCurrentChatId(chatId);
+      setMessages(chat.messages);
+    }
+  };
+
+  const deleteChat = (chatId: string) => {
+    setChatHistories(prev => {
+      const filtered = prev.filter(c => c.id !== chatId);
+      
+      // If we're deleting the current chat, switch to another or create new
+      if (chatId === currentChatId) {
+        if (filtered.length > 0) {
+          const nextChat = filtered[0];
+          setCurrentChatId(nextChat.id);
+          setMessages(nextChat.messages);
+        } else {
+          createNewChat();
+        }
+      }
+      
+      return filtered;
+    });
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -585,15 +726,25 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       </div>
 
       {/* Chat Panel - Always Light Mode */}
-      {isOpen && (
+      {isOpen && !isExpanded && (
         <div className="fixed right-4 bottom-20 w-96 h-[600px] z-40 bg-white border border-gray-200 rounded-lg overflow-hidden shadow-xl">
           <CardHeader className="pb-3 border-b border-gray-200">
             <CardTitle className="flex items-center text-gray-900">
               <Bot className="w-5 h-5 mr-2 text-blue-600" />
               HVAC Assistant
-               <Badge className="ml-auto bg-green-100 text-green-800 hover:bg-green-100">
-                Online
-              </Badge>
+               <div className="ml-auto flex items-center gap-2">
+                <Button
+                  onClick={() => setIsExpanded(true)}
+                  size="sm"
+                  variant="ghost"
+                  className="h-6 w-6 p-0"
+                >
+                  <Maximize2 className="w-4 h-4" />
+                </Button>
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  Online
+                </Badge>
+              </div>
             </CardTitle>
           </CardHeader>
           
@@ -670,6 +821,174 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               </p>
             </div>
           </CardContent>
+        </div>
+      )}
+
+      {/* Expanded Full-Screen Mode */}
+      {isOpen && isExpanded && (
+        <div className="fixed inset-0 z-50 bg-white">
+          <div className="h-full flex">
+            {/* Chat History Sidebar */}
+            <div className="w-80 border-r border-gray-200 bg-gray-50 flex flex-col">
+              {/* Sidebar Header */}
+              <div className="p-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="font-semibold text-gray-900 flex items-center">
+                    <History className="w-4 h-4 mr-2" />
+                    Chat History
+                  </h3>
+                  <Button
+                    onClick={() => setIsExpanded(false)}
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                  >
+                    <Minimize2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                <Button
+                  onClick={createNewChat}
+                  size="sm"
+                  className="w-full"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Chat
+                </Button>
+              </div>
+
+              {/* Chat History List */}
+              <ScrollArea className="flex-1 p-2">
+                <div className="space-y-2">
+                  {chatHistories.map((chat) => (
+                    <div
+                      key={chat.id}
+                      className={`group relative p-3 rounded-lg cursor-pointer transition-colors ${
+                        chat.id === currentChatId
+                          ? 'bg-blue-100 border border-blue-200'
+                          : 'bg-white hover:bg-gray-100 border border-gray-200'
+                      }`}
+                      onClick={() => switchToChat(chat.id)}
+                    >
+                      <div className="pr-8">
+                        <h4 className="text-sm font-medium text-gray-900 truncate">
+                          {chat.title}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {chat.lastUpdated.toLocaleDateString()} • {chat.messages.length} messages
+                        </p>
+                      </div>
+                      {chatHistories.length > 1 && (
+                        <Button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteChat(chat.id);
+                          }}
+                          size="sm"
+                          variant="ghost"
+                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            {/* Main Chat Area */}
+            <div className="flex-1 flex flex-col">
+              {/* Chat Header */}
+              <div className="p-4 border-b border-gray-200 bg-white">
+                <div className="flex items-center">
+                  <Bot className="w-6 h-6 mr-3 text-blue-600" />
+                  <div>
+                    <h2 className="font-semibold text-gray-900">HVAC Assistant</h2>
+                    <p className="text-sm text-gray-500">AI-powered system analysis</p>
+                  </div>
+                  <Badge className="ml-auto bg-green-100 text-green-800 hover:bg-green-100">
+                    Online
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Messages Area */}
+              <ScrollArea className="flex-1 p-6">
+                <div className="max-w-4xl mx-auto">
+                  {messages.map(renderMessage)}
+                  
+                  {/* Suggested Queries */}
+                  {messages.length === 1 && (
+                    <div className="mt-8">
+                      <p className="text-base text-gray-500 mb-4">Try asking:</p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {suggestedQueries.map((query, index) => {
+                          const IconComponent = query.icon;
+                          return (
+                            <button
+                              key={index}
+                              onClick={() => handleSuggestedQuery(query.text)}
+                              className="text-left p-4 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors border border-gray-200"
+                            >
+                              <div className="flex items-center gap-3 mb-2">
+                                <IconComponent className="w-5 h-5 text-blue-600" />
+                                <span className="font-medium text-gray-900">{query.text}</span>
+                              </div>
+                              <Badge variant="outline" className="text-xs border-gray-300 text-gray-600">
+                                {query.category}
+                              </Badge>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {isLoading && (
+                    <div className="flex items-center gap-4 mb-6">
+                      <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center">
+                        <Bot className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+                          <span className="text-base text-gray-900">Analyzing your request...</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div ref={messagesEndRef} />
+                </div>
+              </ScrollArea>
+              
+              {/* Input Area */}
+              <div className="p-6 border-t border-gray-200 bg-white">
+                <div className="max-w-4xl mx-auto">
+                  <form onSubmit={handleSubmit} className="flex gap-3">
+                    <Input
+                      value={input}
+                      onChange={(e) => setInput(e.target.value)}
+                      placeholder="Ask about system performance, diagnostics, or data analysis..."
+                      disabled={isLoading}
+                      className="flex-1 border-gray-300 bg-white text-gray-900 placeholder:text-gray-500 h-12 text-base"
+                    />
+                    <Button 
+                      type="submit" 
+                      size="lg"
+                      disabled={isLoading || !input.trim()}
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    >
+                      <Send className="w-5 h-5" />
+                    </Button>
+                  </form>
+                  <p className="text-sm text-gray-500 mt-3 text-center">
+                    Connected to n8n AI agent for real-time HVAC system analysis
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </>
