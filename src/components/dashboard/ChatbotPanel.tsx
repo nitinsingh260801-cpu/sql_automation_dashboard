@@ -596,13 +596,31 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         // fallback to whole payload
         raw = data;
       }
+      // if raw is an object wrapping text, try common fields
+      if (raw && typeof raw === 'object') {
+        const obj = raw as Record<string, unknown>;
+        const inner = (obj.message ?? obj.output ?? obj.text ?? obj.content) as unknown;
+        if (typeof inner === 'string') {
+          raw = inner;
+        }
+      }
+
       if (typeof raw === 'string') {
         assistantContent = raw;
         try {
           const parsedMessage = JSON.parse(raw);
           if (parsedMessage && typeof parsedMessage === 'object') {
-            messageType = 'data';
-            assistantContent = JSON.stringify(parsedMessage, null, 2);
+            // Only treat as data if it's clearly structured (table/array/object with keys)
+            const isTable = parsedMessage.type === 'table' && Array.isArray((parsedMessage as any).columns) && Array.isArray((parsedMessage as any).rows);
+            const isArray = Array.isArray(parsedMessage);
+            const hasKeys = !isArray && Object.keys(parsedMessage as any).length > 0;
+            if (isTable || isArray || hasKeys) {
+              messageType = 'data';
+              assistantContent = JSON.stringify(parsedMessage, null, 2);
+            } else {
+              messageType = 'text';
+              assistantContent = String(raw);
+            }
           }
         } catch {
           messageType = 'text';
@@ -610,16 +628,27 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       } else {
         try {
           const parsedObj = raw as Record<string, unknown>;
-          // if table-like shape, pass as data
           if (parsedObj && typeof parsedObj === 'object') {
-            messageType = 'data';
-            assistantContent = JSON.stringify(parsedObj, null, 2);
+            const hasKeys = Object.keys(parsedObj).length > 0;
+            if (hasKeys) {
+              messageType = 'data';
+              assistantContent = JSON.stringify(parsedObj, null, 2);
+            } else {
+              messageType = 'text';
+              assistantContent = '';
+            }
           }
         } catch {
           // stringify any other
           assistantContent = String(raw);
           messageType = 'text';
         }
+      }
+
+      // Ensure non-empty content for display
+      if (typeof assistantContent === 'string' && assistantContent.trim().length === 0) {
+        assistantContent = 'No response received.';
+        messageType = 'error';
       }
 
       const assistantMessage: Message = {
