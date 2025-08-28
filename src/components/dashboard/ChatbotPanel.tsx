@@ -383,15 +383,6 @@ interface ChatbotPanelProps {
 }
 
 export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: 'Hello! I\'m your HVAC system assistant. I can help you analyze data, explain system behavior, and provide insights about your chiller unit. What would you like to know?',
-      timestamp: new Date(),
-      type: 'text'
-    }
-  ]);
   const [isExpanded, setIsExpanded] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string>('');
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
