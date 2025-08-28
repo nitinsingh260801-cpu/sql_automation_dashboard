@@ -343,6 +343,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow, TableCaption } from '@/components/ui/table';
 import { 
   MessageCircle, 
   Send, 
@@ -584,27 +585,42 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const data = await response.json();
-      
-      let assistantContent = 'I apologize, but I received an unexpected response format from the AI.';
-      let messageType: 'text' | 'data' | 'error' = 'text';
+      const data = await response.json();
+      
+      let assistantContent = 'I apologize, but I received an unexpected response format from the AI.';
+      let messageType: 'text' | 'data' | 'error' = 'text';
 
-      // Update: Your n8n workflow's Respond to Webhook node outputs a `message` property directly.
-      if (data.message) {
-        assistantContent = data.message;
-        
-        // Check if the response contains structured data (JSON)
-        try {
-          const parsedMessage = JSON.parse(data.message);
-          if (parsedMessage && typeof parsedMessage === 'object') {
-            messageType = 'data';
-            assistantContent = JSON.stringify(parsedMessage, null, 2);
-          }
-        } catch {
-          // Not JSON, treat as regular text
-          messageType = 'text';
-        }
-      }
+      // Prefer explicit message from backend
+      let raw = (data && (data.message ?? data.output ?? data.data?.message ?? data.data?.output)) as unknown;
+      if (raw == null) {
+        // fallback to whole payload
+        raw = data;
+      }
+      if (typeof raw === 'string') {
+        assistantContent = raw;
+        try {
+          const parsedMessage = JSON.parse(raw);
+          if (parsedMessage && typeof parsedMessage === 'object') {
+            messageType = 'data';
+            assistantContent = JSON.stringify(parsedMessage, null, 2);
+          }
+        } catch {
+          messageType = 'text';
+        }
+      } else {
+        try {
+          const parsedObj = raw as Record<string, unknown>;
+          // if table-like shape, pass as data
+          if (parsedObj && typeof parsedObj === 'object') {
+            messageType = 'data';
+            assistantContent = JSON.stringify(parsedObj, null, 2);
+          }
+        } catch {
+          // stringify any other
+          assistantContent = String(raw);
+          messageType = 'text';
+        }
+      }
 
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -678,14 +694,52 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
                 : message.type === 'data'
                   ? 'bg-gray-50 border border-gray-200 text-gray-900'
                   : 'bg-gray-50 border border-gray-200 text-gray-900'
-          }`}>
-            {message.type === 'data' ? (
-              <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">
-                {message.content}
-              </pre>
-            ) : (
-              <p className="text-sm">{message.content}</p>
-            )}
+          }`}>
+            {message.type === 'data' ? (
+              (() => {
+                try {
+                  const parsed = JSON.parse(message.content || '{}');
+                  const isTable = parsed && parsed.type === 'table' && Array.isArray(parsed.columns) && Array.isArray(parsed.rows);
+                  if (!isTable) {
+                    return (
+                      <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{message.content}</pre>
+                    );
+                  }
+                  const columns: string[] = parsed.columns;
+                  const rows: any[] = parsed.rows;
+                  const title: string | undefined = typeof parsed.title === 'string' ? parsed.title : undefined;
+                  return (
+                    <div className="max-w-full overflow-x-auto">
+                      <Table className="min-w-[480px]">
+                        {title ? <TableCaption>{title}</TableCaption> : null}
+                        <TableHeader>
+                          <TableRow>
+                            {columns.map((col: string, idx: number) => (
+                              <TableHead key={idx}>{col}</TableHead>
+                            ))}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {rows.map((row: any, rIdx: number) => (
+                            <TableRow key={rIdx}>
+                              {columns.map((col: string, cIdx: number) => (
+                                <TableCell key={cIdx}>{row && typeof row === 'object' ? String(row[col] ?? '') : ''}</TableCell>
+                              ))}
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                } catch {
+                  return (
+                    <pre className="text-xs overflow-x-auto whitespace-pre-wrap font-mono">{message.content}</pre>
+                  );
+                }
+              })()
+            ) : (
+              <p className="text-sm">{message.content}</p>
+            )}
           </div>
                     <div className="text-xs text-gray-500 mt-1 px-2">
             {formatTime(message.timestamp)}
