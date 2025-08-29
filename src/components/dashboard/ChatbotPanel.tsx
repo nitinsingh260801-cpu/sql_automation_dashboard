@@ -271,12 +271,29 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
       if (typeof raw === 'string') {
         assistantContent = raw;
         
+        // Helper: coerce pseudo-JSON like: type: 'table', columns: ['a'] into valid JSON
+        const coercePseudoJson = (input: string): string => {
+          let s = input.trim();
+          // Remove leading prose up to first '{' if present
+          const firstBrace = s.indexOf('{');
+          if (firstBrace !== -1) s = s.slice(firstBrace);
+          // If it already looks like JSON, return as-is
+          try { JSON.parse(s); return s; } catch {}
+          // Replace single quotes with double quotes
+          s = s.replace(/'/g, '"');
+          // Quote unquoted keys: { key: -> { "key":
+          s = s.replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":');
+          // Ensure true/false/null/number stay unquoted (we only quoted keys above)
+          return s;
+        };
+
         // Helper to extract a table JSON payload from mixed text/markdown
         const tryExtractTableJson = (source: string): string | null => {
           // 1) Look for fenced markdown ```json ... ```
           const md = source.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
           if (md) {
-            const candidate = md[1].trim();
+            let candidate = md[1].trim();
+            candidate = coercePseudoJson(candidate);
             try {
               const obj = JSON.parse(candidate);
               if (obj && obj.type === 'table' && Array.isArray(obj.columns) && Array.isArray(obj.rows)) {
@@ -284,35 +301,19 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               }
             } catch {}
           }
-          // 2) Scan for a JSON object containing "type":"table" even if surrounded by prose
-          const typeIdx = source.indexOf('"type"');
-          const tableIdx = typeIdx !== -1 ? source.indexOf('table', typeIdx) : -1;
+          // 2) Scan for a JSON-ish object containing type: 'table' even if surrounded by prose
+          const typeIdx = source.indexOf('type');
           const startIdx = typeIdx !== -1 ? source.lastIndexOf('{', typeIdx) : -1;
-          if (startIdx !== -1 && tableIdx !== -1) {
-            let depth = 0;
-            let inString = false;
-            let prevChar = '';
-            for (let i = startIdx; i < source.length; i++) {
-              const ch = source[i];
-              if (ch === '"' && prevChar !== '\\') inString = !inString;
-              if (!inString) {
-                if (ch === '{') depth++;
-                else if (ch === '}') {
-                  depth--;
-                  if (depth === 0) {
-                    const candidate = source.slice(startIdx, i + 1).trim();
-                    try {
-                      const obj = JSON.parse(candidate);
-                      if (obj && obj.type === 'table' && Array.isArray(obj.columns) && Array.isArray(obj.rows)) {
-                        return candidate;
-                      }
-                    } catch {}
-                    break;
-                  }
-                }
+          const endIdx = source.lastIndexOf('}');
+          if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+            let candidate = source.slice(startIdx, endIdx + 1).trim();
+            candidate = coercePseudoJson(candidate);
+            try {
+              const obj = JSON.parse(candidate);
+              if (obj && obj.type === 'table' && Array.isArray(obj.columns) && Array.isArray(obj.rows)) {
+                return candidate;
               }
-              prevChar = ch;
-            }
+            } catch {}
           }
           return null;
         };
@@ -324,16 +325,16 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
           assistantContent = jsonString;
         }
         
-        // Try to parse as JSON last
+        // Try to parse as JSON last (after coercion if needed)
         try {
-          const parsedMessage = JSON.parse(jsonString);
+          const parsedMessage = JSON.parse(coercePseudoJson(jsonString));
           if (parsedMessage && typeof parsedMessage === 'object') {
             // Check if it's a table payload
             const isTable = parsedMessage.type === 'table' && Array.isArray((parsedMessage as any).columns) && Array.isArray((parsedMessage as any).rows);
             if (isTable) {
               messageType = 'data';
-              // Keep the extracted JSON string for table rendering
-              assistantContent = jsonString;
+              // Keep the extracted/coerced JSON string for table rendering
+              assistantContent = JSON.stringify(parsedMessage);
             } else {
               // For other JSON objects, show as formatted data
               const isArray = Array.isArray(parsedMessage);
