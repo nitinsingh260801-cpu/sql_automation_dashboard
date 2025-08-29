@@ -466,23 +466,30 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
                   const isRowArray = Array.isArray(rows[0]) && !rows[0]?.every((v: any) => typeof v === 'object');
                   return (
                     <div className="max-w-full overflow-x-auto">
-                      <Table className="min-w-[480px]">
+                      <Table className="min-w-[640px]">
                         {title ? <TableCaption>{title}</TableCaption> : null}
                         <TableHeader>
-                          <TableRow>
+                          <TableRow className="sticky top-0 bg-white">
                             {columns.map((col: string, idx: number) => (
-                              <TableHead key={idx}>{col}</TableHead>
+                              <TableHead key={idx} className="whitespace-nowrap">{col}</TableHead>
                             ))}
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {rows.map((row: any, rIdx: number) => (
-                            <TableRow key={rIdx}>
-                              {columns.map((col: string, cIdx: number) => (
-                                <TableCell key={cIdx}>{
-                                  isRowArray ? String(row[cIdx] ?? '') : (row && typeof row === 'object' ? String(row[col] ?? '') : '')
-                                }</TableCell>
-                              ))}
+                            <TableRow key={rIdx} className={rIdx % 2 === 1 ? 'bg-gray-50' : ''}>
+                              {columns.map((col: string, cIdx: number) => {
+                                const cellVal = isRowArray ? row[cIdx] : (row && typeof row === 'object' ? row[col] : undefined);
+                                const isNumeric = typeof cellVal === 'number' || (!isNaN(parseFloat(cellVal)) && isFinite(cellVal));
+                                return (
+                                  <TableCell
+                                    key={cIdx}
+                                    className={isNumeric ? 'text-right tabular-nums' : 'whitespace-nowrap'}
+                                  >
+                                    {String(cellVal ?? '')}
+                                  </TableCell>
+                                );
+                              })}
                             </TableRow>
                           ))}
                         </TableBody>
