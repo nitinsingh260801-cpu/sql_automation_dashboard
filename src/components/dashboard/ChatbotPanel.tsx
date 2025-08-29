@@ -612,10 +612,13 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
           if (parsedMessage && typeof parsedMessage === 'object') {
             // Check if it's a table payload
             const isTable = parsedMessage.type === 'table' && Array.isArray((parsedMessage as any).columns) && Array.isArray((parsedMessage as any).rows);
+            console.log('Parsed message:', parsedMessage);
+            console.log('Is table:', isTable);
             if (isTable) {
               messageType = 'data';
               // Keep the JSON string as-is for table rendering
               assistantContent = raw;
+              console.log('Setting message type to data for table');
             } else {
               // For other JSON objects, show as formatted data
               const isArray = Array.isArray(parsedMessage);
@@ -629,7 +632,8 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
               }
             }
           }
-        } catch {
+        } catch (e) {
+          console.log('JSON parse error:', e);
           messageType = 'text';
         }
       } else {
