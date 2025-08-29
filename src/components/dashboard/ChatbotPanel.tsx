@@ -607,8 +607,17 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
 
       if (typeof raw === 'string') {
         assistantContent = raw;
+        
+        // Try to extract JSON from markdown code blocks first
+        let jsonString = raw;
+        const markdownMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+        if (markdownMatch) {
+          jsonString = markdownMatch[1].trim();
+          console.log('Extracted JSON from markdown:', jsonString);
+        }
+        
         try {
-          const parsedMessage = JSON.parse(raw);
+          const parsedMessage = JSON.parse(jsonString);
           if (parsedMessage && typeof parsedMessage === 'object') {
             // Check if it's a table payload
             const isTable = parsedMessage.type === 'table' && Array.isArray((parsedMessage as any).columns) && Array.isArray((parsedMessage as any).rows);
@@ -616,8 +625,8 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
             console.log('Is table:', isTable);
             if (isTable) {
               messageType = 'data';
-              // Keep the JSON string as-is for table rendering
-              assistantContent = raw;
+              // Keep the extracted JSON string for table rendering
+              assistantContent = jsonString;
               console.log('Setting message type to data for table');
             } else {
               // For other JSON objects, show as formatted data
