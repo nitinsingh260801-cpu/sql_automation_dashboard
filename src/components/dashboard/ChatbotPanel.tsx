@@ -610,16 +610,23 @@ export const ChatbotPanel = ({ isOpen, onToggle }: ChatbotPanelProps) => {
         try {
           const parsedMessage = JSON.parse(raw);
           if (parsedMessage && typeof parsedMessage === 'object') {
-            // Only treat as data if it's clearly structured (table/array/object with keys)
+            // Check if it's a table payload
             const isTable = parsedMessage.type === 'table' && Array.isArray((parsedMessage as any).columns) && Array.isArray((parsedMessage as any).rows);
-            const isArray = Array.isArray(parsedMessage);
-            const hasKeys = !isArray && Object.keys(parsedMessage as any).length > 0;
-            if (isTable || isArray || hasKeys) {
+            if (isTable) {
               messageType = 'data';
-              assistantContent = JSON.stringify(parsedMessage, null, 2);
+              // Keep the JSON string as-is for table rendering
+              assistantContent = raw;
             } else {
-              messageType = 'text';
-              assistantContent = String(raw);
+              // For other JSON objects, show as formatted data
+              const isArray = Array.isArray(parsedMessage);
+              const hasKeys = !isArray && Object.keys(parsedMessage as any).length > 0;
+              if (isArray || hasKeys) {
+                messageType = 'data';
+                assistantContent = JSON.stringify(parsedMessage, null, 2);
+              } else {
+                messageType = 'text';
+                assistantContent = String(raw);
+              }
             }
           }
         } catch {
